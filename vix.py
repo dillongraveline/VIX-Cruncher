@@ -45,8 +45,14 @@ class VIXCalc():
             if d > thirty_forward_date:
                 next_term_date.append(d)
         next_term_date = next_term_date[-1]
+        
+        midnight = dt.datetime.combine(dt.date.today(), dt.datetime.min.time())
+        midnight = midnight + dt.timedelta(1)
+        M_current_day = midnight - now
+        M_current_day = M_current_day.total_seconds() / 60
+        
 
-        T_near = 
+        T_near = M_current_day + 
         T_next = 
 
         near_term_options = ticker_api.option_chain(str(near_term_date))
