@@ -5,6 +5,10 @@ class VIXCalc():
 
     def __init__(self):
         self.tickers = []
+        self.label = None
+
+    def set_label(self, label_string):
+        self.label = label_string
 
     def set_tickers(self, ticker_list):
         self.tickers = ticker_list
@@ -26,9 +30,9 @@ class VIXCalc():
         ticker_info = ticker_api.info
         price = ticker_info['regularMarketPrice']
         options_expirations = ticker_api.options
-        today = dt.today()
+        now = dt.datetime.now()
         
-        thirty_forward_date = today + dt.timedelta(30)
+        thirty_forward_date = now + dt.timedelta(30)
 
         near_term_date = []
         for d in options_expirations:
@@ -41,4 +45,11 @@ class VIXCalc():
             if d > thirty_forward_date:
                 next_term_date.append(d)
         next_term_date = next_term_date[-1]
+
+        T_near = 
+        T_next = 
+
+        near_term_options = ticker_api.option_chain(str(near_term_date))
+        next_term_options = ticker_api.option_chain(str(next_term_date))
+
 
