@@ -10,6 +10,7 @@ import warnings
 warnings.filterwarnings('ignore')
 import stockquotes
 
+
 class VIXCalc():
 
     def __init__(self):
@@ -409,62 +410,95 @@ RealEstate.set_label("Real Estate")
 Materials = VIXCalc()
 Materials.set_label("Materials")
 
+# Obtain S&P500 Data
+payload=pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
+
+first_table = payload[0]
+second_table = payload[1]
+
+gspc_data = first_table
+
 # Add companies to each Sector Object
 
 # Info Tech
-InfoTech.append_ticker("ADBE", 27)
-InfoTech.append_ticker("XQQ.TO", 36.3)
-InfoTech.append_ticker("PROSY", 20.4)
-InfoTech.append_ticker("TDOC", 16.2)
+it_tickers = []
+for idx in gspc_data.index:
+    if gspc_data.loc[idx, 'GICS Sector'] == "Information Technology":
+        it_tickers.append([gspc_data.loc[idx, "Symbol"], 1])
+
+InfoTech.set_tickers(it_tickers)
 
 # Healthcare
-Healthcare.append_ticker("ALC", 22.5)
-Healthcare.append_ticker("MDT", 25.4)
-Healthcare.append_ticker("SRPT", 28.9)
-Healthcare.append_ticker("SIS.TO", 23.2)
+healthcare_tickers = []
+for idx in gspc_data.index:
+    if gspc_data.loc[idx, 'GICS Sector'] == "Health Care":
+        healthcare_tickers.append([gspc_data.loc[idx, "Symbol"], 1])
+
+Healthcare.set_tickers(healthcare_tickers)
 
 # Financials
-Financials.append_ticker("AXP", 20.2)
-Financials.append_ticker("BAC", 18)
-Financials.append_ticker("BMO.TO", 21)
-Financials.append_ticker("FLI.TO", 10.7)
-Financials.append_ticker("EWBC", 16.9)
-Financials.append_ticker("SIVB", 13.2)
+financials_tickers = []
+for idx in gspc_data.index:
+    if gspc_data.loc[idx, 'GICS Sector'] == "Financials":
+        financials_tickers.append([gspc_data.loc[idx, "Symbol"], 1])
+
+Financials.set_tickers(financials_tickers)
 
 # Consumers (combining discretionary and staples, therefore sum(weights) > 100. The algo auto scales the weights to add to 100.)
-Cons.append_ticker("ATZ.TO", 43.8)
-Cons.append_ticker("XCD.TO", 51.5)
-Cons.append_ticker("L.TO", 100)
-Cons.append_ticker("TSX:PSG", 4.8)
+consumers_tickers = []
+for idx in gspc_data.index:
+    if gspc_data.loc[idx, 'GICS Sector'] == "Consumer Discretionary" or gspc_data.loc[idx, 'GICS Sector'] == "Consumer Staples":
+        consumers_tickers.append([gspc_data.loc[idx, "Symbol"], 1])
+
+Cons.set_tickers(consumers_tickers)
 
 # Communication Services
-Comm.append_ticker("COMM.TO", 37.4)
-Comm.append_ticker("FB", 62.6)
+communication_tickers = []
+for idx in gspc_data.index:
+    if gspc_data.loc[idx, 'GICS Sector'] == "Communication Services":
+        communication_tickers.append([gspc_data.loc[idx, "Symbol"], 1])
+
+Comm.set_tickers(communication_tickers)
 
 # Utilities
-Utilities.append_ticker("EMA.TO", 64.3)
-Utilities.append_ticker("SSEZY", 35.7)
+utilities_tickers = []
+for idx in gspc_data.index:
+    if gspc_data.loc[idx, 'GICS Sector'] == "Utilities":
+        utilities_tickers.append([gspc_data.loc[idx, "Symbol"], 1])
+
+Utilities.set_tickers(utilities_tickers)
 
 # Industrials
-Industrials.append_ticker("FCT.MI", 28.7)
-Industrials.append_ticker("XGI.TO", 23.2)
-Industrials.append_ticker("TDG", 48.1)
+industrials_tickers = []
+for idx in gspc_data.index:
+    if gspc_data.loc[idx, 'GICS Sector'] == "Industrials":
+        industrials_tickers.append([gspc_data.loc[idx, "Symbol"], 1])
+
+Industrials.set_tickers(industrials_tickers)
 
 # Energy
-Energy.append_ticker("MPC", 22.2)
-Energy.append_ticker("PXT.TO", 14.3)
-Energy.append_ticker("PPL.TO", 28.5)
-Energy.append_ticker("VII.TO", 21.4)
-Energy.append_ticker("SU.TO", 13.6)
+eg_tickers = []
+for idx in gspc_data.index:
+    if gspc_data.loc[idx, 'GICS Sector'] == "Energy":
+        eg_tickers.append([gspc_data.loc[idx, "Symbol"], 1])
+
+Energy.set_tickers(eg_tickers)
 
 # Real Estate
-RealEstate.append_ticker("MGP", 39.9)
-RealEstate.append_ticker("PLD", 60.1)
+re_tickers = []
+for idx in gspc_data.index:
+    if gspc_data.loc[idx, 'GICS Sector'] == "Real Estate":
+        re_tickers.append([gspc_data.loc[idx, "Symbol"], 1])
+
+RealEstate.set_tickers(re_tickers)
 
 # Materials
-Materials.append_ticker("NILSY", 36.2)
-Materials.append_ticker("SUM", 29)
-Materials.append_ticker("XMA.TO", 34.8)
+mat_tickers = []
+for idx in gspc_data.index:
+    if gspc_data.loc[idx, 'GICS Sector'] == "Materials":
+        mat_tickers.append([gspc_data.loc[idx, "Symbol"], 1])
+
+Materials.set_tickers(mat_tickers)
 
 # Calculate Composite VIX Values
 InfoTech.calculate_composite_VIX()
