@@ -71,7 +71,6 @@ class VIXCalc():
         # Determine the forward stock level, F, by identifying the strike price at which the absolute difference between the call and put prices is smallest.
         F_near = self.forward_level(options_data['near_term_options'], R1, T_near)
         F_next = self.forward_level(options_data['next_term_options'], R2, T_next)
-        print(F_next)
         
         # Obtain the K0 strike price
         K0_near = self.K0_calc(options_data['near_term_options'], F_near)
@@ -93,7 +92,7 @@ class VIXCalc():
 
         # Calculate vol for next term options
         V_next = self.calc_vol(K_next_chain, T_next, R2, K0_next, F_next)
-        print(V_next)
+
         # Define N values for VIX Calc
         NT1 = M_current_day + M_settlement_day + M_other_days_near
         NT2 = M_current_day + M_settlement_day + M_other_days_next
@@ -127,12 +126,13 @@ class VIXCalc():
             composite = (delta_K / K_squared) * (math.e ** (R * T)) * Q
             contributions.append(composite) 
         
+        contributions = [x for x in contributions if str(x) != 'nan']
         total_contributions = sum(contributions)
         
         left_term = (2 / T) * total_contributions
         
         right_term = (1/T) * ((F/K0) - 1)**2
-
+        
         vol = left_term - right_term
 
         return vol
@@ -377,12 +377,13 @@ vix_handler.set_label("test")
 
 vix_handler.set_fred_api_key('c47800ecdce41a71d698aef2d4ebc599')
 
-vix_handler.append_ticker("AAPL")
 vix_handler.append_ticker("TSLA")
-vix_handler.append_ticker("BHF")
-vix_handler.append_ticker("HI")
-vix_handler.append_ticker("NVDA")
-vix_handler.append_ticker("F")
+vix_handler.append_ticker("AMZN")
+vix_handler.append_ticker("AAPL")
+vix_handler.append_ticker("GS")
+
+vix_handler.append_ticker("GOOGL")
+vix_handler.append_ticker("IBM")
 vix_handler.append_ticker("^SPX")
 compositeVIX = vix_handler.calculate_composite_VIX()
 print(f"The composite VIX for sector {vix_handler.label} is: {compositeVIX}.")
