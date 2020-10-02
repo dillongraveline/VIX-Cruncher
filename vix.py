@@ -16,7 +16,7 @@ class VIXCalc():
         self.tickers = []
         self.label = None
         self._eodoptions_api_key = None
-        self._fred_api_key = c47800ecdce41a71d698aef2d4ebc599
+        self._fred_api_key = 'c47800ecdce41a71d698aef2d4ebc599'
 
     def set_eodoptions_api_key(self, apikey):
         self._eodoptions_api_key = apikey
@@ -31,6 +31,7 @@ class VIXCalc():
         self.tickers.append([ticker_string, weight])
 
     def calculate_composite_VIX(self):
+        print(f"Starting calculations for sector: {self.label}.")
         measurements = []
         for ticker in self.tickers:
             try:
@@ -51,6 +52,7 @@ class VIXCalc():
             composite_VIX += measurement[0] * (measurement[1] / total_weight)
         
         print(f"The composite VIX for sector {self.label} is: {composite_VIX}.")
+        print('')
 
         return composite_VIX
     
@@ -410,15 +412,15 @@ Materials.set_label("Materials")
 # Add companies to each Sector Object
 
 # Info Tech
-InfoTech.append_ticker("ADBE.O", 27)
+InfoTech.append_ticker("ADBE", 27)
 InfoTech.append_ticker("XQQ.TO", 36.3)
-InfoTech.append_ticker("PROSY.PK", 20.4)
-InfoTech.append_ticker("TDOC.K", 16.2)
+InfoTech.append_ticker("PROSY", 20.4)
+InfoTech.append_ticker("TDOC", 16.2)
 
 # Healthcare
 Healthcare.append_ticker("ALC", 22.5)
 Healthcare.append_ticker("MDT", 25.4)
-Healthcare.append_ticker("SRPT.O", 28.9)
+Healthcare.append_ticker("SRPT", 28.9)
 Healthcare.append_ticker("SIS.TO", 23.2)
 
 # Financials
@@ -426,8 +428,8 @@ Financials.append_ticker("AXP", 20.2)
 Financials.append_ticker("BAC", 18)
 Financials.append_ticker("BMO.TO", 21)
 Financials.append_ticker("FLI.TO", 10.7)
-Financials.append_ticker("EWBC.O", 16.9)
-Financials.append_ticker("SIVB.O", 13.2)
+Financials.append_ticker("EWBC", 16.9)
+Financials.append_ticker("SIVB", 13.2)
 
 # Consumers (combining discretionary and staples, therefore sum(weights) > 100. The algo auto scales the weights to add to 100.)
 Cons.append_ticker("ATZ.TO", 43.8)
@@ -441,7 +443,7 @@ Comm.append_ticker("FB", 62.6)
 
 # Utilities
 Utilities.append_ticker("EMA.TO", 64.3)
-Utilities.append_ticker("SSEZY.PK", 35.7)
+Utilities.append_ticker("SSEZY", 35.7)
 
 # Industrials
 Industrials.append_ticker("FCT.MI", 28.7)
@@ -460,7 +462,7 @@ RealEstate.append_ticker("MGP", 39.9)
 RealEstate.append_ticker("PLD", 60.1)
 
 # Materials
-Materials.append_ticker("NILSY.PK", 36.2)
+Materials.append_ticker("NILSY", 36.2)
 Materials.append_ticker("SUM", 29)
 Materials.append_ticker("XMA.TO", 34.8)
 
