@@ -1,3 +1,4 @@
+# Import modules
 import yfinance as yf
 import datetime as dt
 import requests
@@ -10,33 +11,40 @@ import warnings
 warnings.filterwarnings('ignore')
 import stockquotes
 
-
+# Define VIX Calculation class
 class VIXCalc():
 
     def __init__(self):
         self.tickers = []
         self.label = None
         self._eodoptions_api_key = None
+        
+        # This is my API Key for the FRED API... A new one can be generated at: https://fred.stlouisfed.org/docs/api/fred/
         self._fred_api_key = 'c47800ecdce41a71d698aef2d4ebc599'
 
+    # This is only for if the EODOptions database is used
     def set_eodoptions_api_key(self, apikey):
         self._eodoptions_api_key = apikey
 
+    # Function to set the sector label. It will refelct in the output file.
     def set_label(self, label_string):
         self.label = label_string
 
+    # Input a list of tickers and weights
     def set_tickers(self, ticker_list):
         self.tickers = ticker_list
 
+    # Append individual securities and weights to the ticker list.
     def append_ticker(self, ticker_string, weight):
         self.tickers.append([ticker_string, weight])
 
+    # Main function to calculate the VIX for the sector
     def calculate_composite_VIX(self):
         print(f"Starting calculations for sector: {self.label}.")
         measurements = []
         for ticker in self.tickers:
             try:
-                VIX_calc = self.calculate_VIX(ticker[0])
+                VIX_calc = self._calculate_VIX(ticker[0])
                 measurements.append([VIX_calc, ticker[1]])
             except:
                 print(f"ERROR: There was a problem calcualting {ticker[0]}'s VIX. \n This could be due to a lack of options volume.")
@@ -57,10 +65,10 @@ class VIXCalc():
 
         return composite_VIX
     
-    def calculate_VIX(self, ticker):
+    def _calculate_VIX(self, ticker):
         print(f"Calculating VIX for: {ticker}...")
 
-        options_data = self.options_data_parser(ticker)
+        options_data = self._options_data_parser(ticker)
         
         midnight = dt.datetime.combine(dt.date.today(), dt.datetime.min.time())
         midnight = midnight + dt.timedelta(1)
@@ -81,33 +89,33 @@ class VIXCalc():
         T_next = (M_current_day + M_settlement_day + M_other_days_next) / 525600
 
         # Generate constant maturity treasury rates for each expiration using cubic spline interpolation.
-        R1 = self.risk_free_calc(options_data['near_term_date'])
-        R2 = self.risk_free_calc(options_data['next_term_date'])
+        R1 = self._risk_free_calc(options_data['near_term_date'])
+        R2 = self._risk_free_calc(options_data['next_term_date'])
 
         # Determine the forward stock level, F, by identifying the strike price at which the absolute difference between the call and put prices is smallest.
-        F_near = self.forward_level(options_data['near_term_options'], R1, T_near)
-        F_next = self.forward_level(options_data['next_term_options'], R2, T_next)
+        F_near = self._forward_level(options_data['near_term_options'], R1, T_near)
+        F_next = self._forward_level(options_data['next_term_options'], R2, T_next)
         
         # Obtain the K0 strike price
-        K0_near = self.K0_calc(options_data['near_term_options'], F_near)
-        K0_next = self.K0_calc(options_data['next_term_options'], F_next)
+        K0_near = self._K0_calc(options_data['near_term_options'], F_near)
+        K0_next = self._K0_calc(options_data['next_term_options'], F_next)
 
         # Filter the option chain using the K0 price.
-        K_options_chain_calls_near = self.K_options_chain_calls_filter(options_data['near_term_options'], K0_near)
-        K_options_chain_puts_near = self.K_options_chain_puts_filter(options_data['near_term_options'], K0_near)
-        K_options_chain_calls_next = self.K_options_chain_calls_filter(options_data['next_term_options'], K0_next)
-        K_options_chain_puts_next = self.K_options_chain_puts_filter(options_data['next_term_options'], K0_next)
+        K_options_chain_calls_near = self._K_options_chain_calls_filter(options_data['near_term_options'], K0_near)
+        K_options_chain_puts_near = self._K_options_chain_puts_filter(options_data['near_term_options'], K0_near)
+        K_options_chain_calls_next = self._K_options_chain_calls_filter(options_data['next_term_options'], K0_next)
+        K_options_chain_puts_next = self._K_options_chain_puts_filter(options_data['next_term_options'], K0_next)
 
         # Combine the call and put option chains to form a composite chain.
-        K_near_chain = self.K_chain_combiner(K_options_chain_calls_near, K_options_chain_puts_near, K0_near)
-        K_next_chain = self.K_chain_combiner(K_options_chain_calls_next, K_options_chain_puts_next, K0_next)
+        K_near_chain = self._K_chain_combiner(K_options_chain_calls_near, K_options_chain_puts_near, K0_near)
+        K_next_chain = self._K_chain_combiner(K_options_chain_calls_next, K_options_chain_puts_next, K0_next)
         
 
         # Calculate vol for near term options
-        V_near = self.calc_vol(K_near_chain, T_near, R1, K0_near, F_near)        
+        V_near = self._calc_vol(K_near_chain, T_near, R1, K0_near, F_near)        
 
         # Calculate vol for next term options
-        V_next = self.calc_vol(K_next_chain, T_next, R2, K0_next, F_next)
+        V_next = self._calc_vol(K_next_chain, T_next, R2, K0_next, F_next)
 
         # Define N values for VIX Calc
         NT1 = M_current_day + M_settlement_day + M_other_days_near
@@ -126,8 +134,8 @@ class VIXCalc():
 
         return VIX
 
-    
-    def calc_vol(self, option_chain, T, R, K0, F):
+    # This function calculates the sigma squared for a given option chain
+    def _calc_vol(self, option_chain, T, R, K0, F):
         contributions = []
         for idx in option_chain.index:
             if idx == 0:
@@ -142,7 +150,9 @@ class VIXCalc():
             composite = (delta_K / K_squared) * (math.e ** (R * T)) * Q
             contributions.append(composite) 
         
+        # Filters out NaNs
         contributions = [x for x in contributions if str(x) != 'nan']
+        
         total_contributions = sum(contributions)
         
         left_term = (2 / T) * total_contributions
@@ -153,8 +163,8 @@ class VIXCalc():
 
         return vol
 
-
-    def K_chain_combiner(self, calls, puts, K0):
+    # Combines separate call and put chains into one
+    def _K_chain_combiner(self, calls, puts, K0):
         # Generate call dataframe
         calls['midpoint'] = (calls['bid'] + calls['ask']) / 2
         call_df = calls[['strike', 'midpoint']]
@@ -203,7 +213,8 @@ class VIXCalc():
 
         return result
 
-    def K_options_chain_calls_filter(self, options_chain, K0):
+
+    def _K_options_chain_calls_filter(self, options_chain, K0):
         calls = options_chain.calls
         calls = calls[calls['strike'] >= K0]
         calls['include'] = True
@@ -223,9 +234,8 @@ class VIXCalc():
         chain_df = calls[calls['include'] == True]
         return chain_df
             
-
-
-    def K_options_chain_puts_filter(self, options_chain, K0):
+            
+    def _K_options_chain_puts_filter(self, options_chain, K0):
         puts = options_chain.puts
         puts = puts[puts['strike'] <= K0]
         
@@ -246,10 +256,12 @@ class VIXCalc():
         chain_df = puts[puts['include'] == True]
         return chain_df
 
-    def K0_calc(self, options_chain, F):
+
+    def _K0_calc(self, options_chain, F):
         calls = options_chain.calls
         puts = options_chain.puts
-        
+
+        # Merges the call and put dataframes        
         merged_df = calls.merge(puts, on='strike', how='left')
         
         less_than = merged_df[merged_df['strike'] < F]
@@ -260,7 +272,8 @@ class VIXCalc():
         return K0
 
 
-    def risk_free_calc(self, date):
+    # Obtains the CMT treasury rate at a given date using cubic spline interpolation.
+    def _risk_free_calc(self, date):
         try:
             fred = Fred(api_key=self._fred_api_key)
         except:
@@ -291,17 +304,20 @@ class VIXCalc():
 
         return y_new
 
-    def forward_level(self, option_chain, R, T):
+
+    # Generates the forward index level of the security
+    def _forward_level(self, option_chain, R, T):
         calls = option_chain.calls
         puts = option_chain.puts
        
-
+        # Calculates the midpoint price between bid and ask
         calls['midpointCalls'] = (calls['bid'] + puts['ask']) / 2
         puts['midpointPuts'] = (puts['bid'] + puts['ask']) / 2
 
         puts = puts[['strike', 'midpointPuts']]
         calls = calls[['strike', 'midpointCalls']]
 
+        # Drop NaNs
         calls.dropna(inplace=True)
         puts.dropna(inplace=True)
 
@@ -319,10 +335,9 @@ class VIXCalc():
 
         return F
         
-    def options_data_parser(self, ticker):
-        '''
-        options_data is a dictionary with all the necessary data
-        '''
+    def _options_data_parser(self, ticker):
+        # Options_data is a dictionary with all the necessary data
+        
         now = dt.datetime.now()
         thirty_forward_date = now + dt.timedelta(30)
 
