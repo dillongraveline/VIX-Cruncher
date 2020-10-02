@@ -16,10 +16,7 @@ class VIXCalc():
         self.tickers = []
         self.label = None
         self._eodoptions_api_key = None
-        self._fred_api_key = None
-
-    def set_fred_api_key(self, apikey):
-        self._fred_api_key = apikey
+        self._fred_api_key = c47800ecdce41a71d698aef2d4ebc599
 
     def set_eodoptions_api_key(self, apikey):
         self._eodoptions_api_key = apikey
@@ -30,15 +27,31 @@ class VIXCalc():
     def set_tickers(self, ticker_list):
         self.tickers = ticker_list
 
-    def append_ticker(self, ticker_string):
-        self.tickers.append(ticker_string)
+    def append_ticker(self, ticker_string, weight):
+        self.tickers.append([ticker_string, weight])
 
     def calculate_composite_VIX(self):
         measurements = []
         for ticker in self.tickers:
-            VIX_calc = self.calculate_VIX(ticker)
-            measurements.append(VIX_calc)
-        composite_VIX = sum(measurements)/len(measurements)
+            try:
+                VIX_calc = self.calculate_VIX(ticker[0])
+                measurements.append([VIX_calc, ticker[1]])
+            except:
+                print(f"ERROR: There was a problem calcualting {ticker[0]}'s VIX. \n This could be due to a lack of options volume.")
+        
+        
+        total_weight = 0
+        for measurement in measurements:
+            total_weight += measurement[1]
+
+        composite_VIX = 0
+
+        # Calculate the weighted average of all individual VIX calculations for each stock.
+        for measurement in measurements:
+            composite_VIX += measurement[0] * (measurement[1] / total_weight)
+        
+        print(f"The composite VIX for sector {self.label} is: {composite_VIX}.")
+
         return composite_VIX
     
     def calculate_VIX(self, ticker):
@@ -372,18 +385,93 @@ class VIXCalc():
         return options_data
 
 
-vix_handler = VIXCalc()
-vix_handler.set_label("test")
+# This will be replaced with a graphical user interface, but for now, it is done by code.
+InfoTech = VIXCalc()
+InfoTech.set_label("Information Technology")
+Healthcare = VIXCalc()
+Healthcare.set_label("Healthcare")
+Financials = VIXCalc()
+Financials.set_label("Financials")
+Cons = VIXCalc()
+Cons.set_label("Consumers")
+Comm = VIXCalc()
+Comm.set_label("Communication Services")
+Utilities = VIXCalc()
+Utilities.set_label("Utilities")
+Industrials = VIXCalc()
+Industrials.set_label("Industrials")
+Energy = VIXCalc()
+Energy.set_label("Energy")
+RealEstate = VIXCalc()
+RealEstate.set_label("Real Estate")
+Materials = VIXCalc()
+Materials.set_label("Materials")
 
-vix_handler.set_fred_api_key('c47800ecdce41a71d698aef2d4ebc599')
+# Add companies to each Sector Object
 
-vix_handler.append_ticker("TSLA")
-vix_handler.append_ticker("AMZN")
-vix_handler.append_ticker("AAPL")
-vix_handler.append_ticker("GS")
+# Info Tech
+InfoTech.append_ticker("ADBE.O", 27)
+InfoTech.append_ticker("XQQ.TO", 36.3)
+InfoTech.append_ticker("PROSY.PK", 20.4)
+InfoTech.append_ticker("TDOC.K", 16.2)
 
-vix_handler.append_ticker("GOOGL")
-vix_handler.append_ticker("IBM")
-vix_handler.append_ticker("^SPX")
-compositeVIX = vix_handler.calculate_composite_VIX()
-print(f"The composite VIX for sector {vix_handler.label} is: {compositeVIX}.")
+# Healthcare
+Healthcare.append_ticker("ALC", 22.5)
+Healthcare.append_ticker("MDT", 25.4)
+Healthcare.append_ticker("SRPT.O", 28.9)
+Healthcare.append_ticker("SIS.TO", 23.2)
+
+# Financials
+Financials.append_ticker("AXP", 20.2)
+Financials.append_ticker("BAC", 18)
+Financials.append_ticker("BMO.TO", 21)
+Financials.append_ticker("FLI.TO", 10.7)
+Financials.append_ticker("EWBC.O", 16.9)
+Financials.append_ticker("SIVB.O", 13.2)
+
+# Consumers (combining discretionary and staples, therefore sum(weights) > 100. The algo auto scales the weights to add to 100.)
+Cons.append_ticker("ATZ.TO", 43.8)
+Cons.append_ticker("XCD.TO", 51.5)
+Cons.append_ticker("L.TO", 100)
+Cons.append_ticker("TSX:PSG", 4.8)
+
+# Communication Services
+Comm.append_ticker("COMM.TO", 37.4)
+Comm.append_ticker("FB", 62.6)
+
+# Utilities
+Utilities.append_ticker("EMA.TO", 64.3)
+Utilities.append_ticker("SSEZY.PK", 35.7)
+
+# Industrials
+Industrials.append_ticker("FCT.MI", 28.7)
+Industrials.append_ticker("XGI.TO", 23.2)
+Industrials.append_ticker("TDG", 48.1)
+
+# Energy
+Energy.append_ticker("MPC", 22.2)
+Energy.append_ticker("PXT.TO", 14.3)
+Energy.append_ticker("PPL.TO", 28.5)
+Energy.append_ticker("VII.TO", 21.4)
+Energy.append_ticker("SU.TO", 13.6)
+
+# Real Estate
+RealEstate.append_ticker("MGP", 39.9)
+RealEstate.append_ticker("PLD", 60.1)
+
+# Materials
+Materials.append_ticker("NILSY.PK", 36.2)
+Materials.append_ticker("SUM", 29)
+Materials.append_ticker("XMA.TO", 34.8)
+
+# Calculate Composite VIX Values
+InfoTech.calculate_composite_VIX()
+Healthcare.calculate_composite_VIX()
+Financials.calculate_composite_VIX()
+Cons.calculate_composite_VIX()
+Comm.calculate_composite_VIX()
+Utilities.calculate_composite_VIX()
+Industrials.calculate_composite_VIX()
+Energy.calculate_composite_VIX()
+RealEstate.calculate_composite_VIX()
+Materials.calculate_composite_VIX()
